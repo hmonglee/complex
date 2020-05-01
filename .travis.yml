@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t hmonglee/complex -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true hmonglee/complex npm test -- --coverage
+
+after_success:
+    - docker build -t hmonglee/multi-client ./client
+    - docker build -t hmonglee/multi-nginx ./nginx
+    - docker build -t hmonglee/multi-server ./server
+    - docker build -t hmonglee/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push hmonglee/multi-client
+    - docker push hmonglee/multi-nginx
+    - docker push hmonglee/multi-server
+    - docker push hmonglee/multi-worker
+    
